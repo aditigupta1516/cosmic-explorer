@@ -6,7 +6,7 @@ A visually stunning 3D interactive image slider showcasing the wonders of the co
 
 - *Immersive 3D Effects*: Perspective transforms create depth and realism
 - *Auto-Play Slideshow*: Seamless transitions with visual progress indicator
-- *Multiple Navigation Options*:
+- *Multiple Navigation Options*
   - Arrow buttons
   - Dot indicators
   - Keyboard controls (← → arrow keys)
