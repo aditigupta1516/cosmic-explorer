@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Image Explorer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Base Styles */
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --accent: #fd79a8;
+            --dark: #2d3436;
+            --light: #f5f6fa;
+            --text: #636e72;
+            --shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            --transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Slider Container */
+        .slider-container {
+            max-width: 1200px;
+            margin: 5rem auto;
+            position: relative;
+            perspective: 2000px;
+        }
+
+        .slider-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .slider-title h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+            position: relative;
+        }
+
+        .slider-title h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        /* Slider Main */
+        .slider {
+            position: relative;
+            height: 500px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transform-style: preserve-3d;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: var(--transition);
+            transform: translateX(50%) scale(0.8);
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            padding: 0 5%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: -1;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+            z-index: 10;
+        }
+
+        .slide.prev {
+            opacity: 0.5;
+            transform: translateX(-50%) scale(0.8);
+            z-index: 2;
+        }
+
+        .slide.next {
+            opacity: 0.5;
+            transform: translateX(50%) scale(0.8);
+            z-index: 2;
+        }
+
+        /* Slide Content */
+        .slide-content {
+            width: 50%;
+            color: var(--light);
+            transform: translateX(-150%);
+            transition: var(--transition);
+            transition-delay: 0.3s;
+            opacity: 0;
+        }
+
+        .active .slide-content {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .slide-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .slide-content p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .slide-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px rgba(253, 121, 168, 0.4);
+        }
+
+        .slide-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(253, 121, 168, 0.6);
+        }
+
+        /* Slide Image */
+        .slide-img {
+            position: absolute;
+            right: 5%;
+            width: 40%;
+            height: 80%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+            transform: translateX(150%) scale(0.8);
+            transition: var(--transition);
+            transition-delay: 0.5s;
+            opacity: 0;
+            border-radius: 10px;
+        }
+
+        .active .slide-img {
+            transform: translateX(0) scale(1);
+            opacity: 1;
+        }
+
+        /* Slider Controls */
+        .slider-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: var(--accent);
+            transform: translateY(-5px);
+        }
+
+        /* Slider Dots */
+        .slider-dots {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .dot.active {
+            background: var(--accent);
+            transform: scale(1.3);
+        }
+
+        /* Info Panel */
+        .info-panel {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.9rem;
+            z-index: 100;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .slider:hover .info-panel {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background: var(--accent);
+            z-index: 100;
+            width: 0%;
+            transition: width 4s linear;
+        }
+
+        .active .progress-bar {
+            width: 100%;
+        }
+
+        /* Floating Elements */
+        .floating-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden;
+        }
+
+        .floating-element {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            filter: blur(30px);
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            50% {
+                transform: translate(50px, 50px) rotate(180deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .slider {
+                height: 400px;
+            }
+            
+            .slide-content {
+                width: 70%;
+            }
+            
+            .slide-img {
+                width: 60%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .slider {
+                height: 500px;
+            }
+            
+            .slide {
+                flex-direction: column;
+                justify-content: center;
+                text-align: center;
+                padding: 0 10%;
+            }
+            
+            .slide-content {
+                width: 100%;
+                margin-bottom: 30px;
+            }
+            
+            .slide-img {
+                position: relative;
+                right: auto;
+                width: 80%;
+                height: 200px;
+            }
+            
+            .slider-title h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="slider-container">
+        <div class="slider-title">
+            <h1>Cosmic Explorer</h1>
+        </div>
+        
+        <div class="slider">
+            <!-- Floating background elements -->
+            <div class="floating-elements">
+                <div class="floating-element" style="width: 200px; height: 200px; background: var(--primary); top: 10%; left: 20%; animation-delay: 0s;"></div>
+                <div class="floating-element" style="width: 150px; height: 150px; background: var(--accent); top: 60%; left: 70%; animation-delay: 2s;"></div>
+                <div class="floating-element" style="width: 100px; height: 100px; background: var(--secondary); top: 30%; left: 50%; animation-delay: 4s;"></div>
+            </div>
+            
+            <!-- Slide 1 -->
+            <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1454789548928-9efd52dc4031?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1480&q=80');">
+                <div class="slide-content">
+                    <h2>Nebula Wonders</h2>
+                    <p>Explore the breathtaking beauty of distant nebulas where stars are born. Our cosmic journey takes you through the colorful clouds of gas and dust that span light-years across the universe.</p>
+                    <a href="#" class="slide-btn">Explore More</a>
+                </div>
+                <img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1511&q=80" alt="Nebula" class="slide-img">
+                <div class="progress-bar"></div>
+            </div>
+            
+            <!-- Slide 2 -->
+            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1464802686167-b939a6910659?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1450&q=80');">
+                <div class="slide-content">
+                    <h2>Galactic Horizons</h2>
+                    <p>Witness the majestic spiral arms of distant galaxies, each containing billions of stars. Discover how these cosmic islands form and evolve over billions of years.</p>
+                    <a href="#" class="slide-btn">Discover Galaxies</a>
+                </div>
+                <img src="https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Galaxy" class="slide-img">
+                <div class="progress-bar"></div>
+            </div>
+            
+            <!-- Slide 3 -->
+            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1471&q=80');">
+                <div class="slide-content">
+                    <h2>Stellar Phenomena</h2>
+                    <p>From supernovae to black holes, explore the most extreme and fascinating phenomena in the universe. Learn how these cosmic events shape the fabric of space-time.</p>
+                    <a href="#" class="slide-btn">Witness Phenomena</a>
+                </div>
+                <img src="https://images.unsplash.com/photo-1519817650390-64a93db51149?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Supernova" class="slide-img">
+                <div class="progress-bar"></div>
+            </div>
+            
+            <!-- Slide 4 -->
+            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1543722530-d2c3201371e7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1474&q=80');">
+                <div class="slide-content">
+                    <h2>Planetary Systems</h2>
+                    <p>Journey through exotic planetary systems with worlds beyond imagination. Discover planets made of diamond, with rains of glass, and oceans of lava.</p>
+                    <a href="#" class="slide-btn">Explore Planets</a>
+                </div>
+                <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1472&q=80" alt="Planets" class="slide-img">
+                <div class="progress-bar"></div>
+            </div>
+            
+            <div class="info-panel">
+                <div class="info-item"><i class="fas fa-image"></i> Cosmic Collection</div>
+                <div class="info-item"><i class="fas fa-expand"></i> 4K Resolution</div>
+            </div>
+            
+            <div class="slider-controls">
+                <button class="control-btn prev-btn"><i class="fas fa-chevron-left"></i></button>
+                <button class="control-btn next-btn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            
+            <div class="slider-dots">
+                <div class="dot active" data-slide="0"></div>
+                <div class="dot" data-slide="1"></div>
+                <div class="dot" data-slide="2"></div>
+                <div class="dot" data-slide="3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slides = document.querySelectorAll('.slide');
+            const dots = document.querySelectorAll('.dot');
+            const prevBtn = document.querySelector('.prev-btn');
+            const nextBtn = document.querySelector('.next-btn');
+            let currentSlide = 0;
+            let slideInterval;
+            const slideDuration = 5000; // 5 seconds
+            
+            // Initialize slider
+            function initSlider() {
+                updateSlider();
+                startSlideShow();
+            }
+            
+            // Update slider display
+            function updateSlider() {
+                slides.forEach((slide, index) => {
+                    slide.classList.remove('active', 'prev', 'next');
+                    
+                    if (index === currentSlide) {
+                        slide.classList.add('active');
+                        // Reset progress bar animation
+                        const progressBar = slide.querySelector('.progress-bar');
+                        progressBar.style.transition = 'none';
+                        progressBar.style.width = '0%';
+                        void progressBar.offsetWidth; // Trigger reflow
+                        progressBar.style.transition = `width ${slideDuration/1000}s linear`;
+                        progressBar.style.width = '100%';
+                    } else if (index === (currentSlide - 1 + slides.length) % slides.length) {
+                        slide.classList.add('prev');
+                    } else if (index === (currentSlide + 1) % slides.length) {
+                        slide.classList.add('next');
+                    }
+                });
+                
+                // Update dots
+                dots.forEach((dot, index) => {
+                    dot.classList.remove('active');
+                    if (index === currentSlide) {
+                        dot.classList.add('active');
+                    }
+                });
+            }
+            
+            // Go to specific slide
+            function goToSlide(index) {
+                currentSlide = (index + slides.length) % slides.length;
+                updateSlider();
+                resetSlideShow();
+            }
+            
+            // Next slide
+            function nextSlide() {
+                goToSlide(currentSlide + 1);
+            }
+            
+            // Previous slide
+            function prevSlide() {
+                goToSlide(currentSlide - 1);
+            }
+            
+            // Start slideshow
+            function startSlideShow() {
+                slideInterval = setInterval(nextSlide, slideDuration);
+            }
+            
+            // Reset slideshow timer
+            function resetSlideShow() {
+                clearInterval(slideInterval);
+                startSlideShow();
+            }
+            
+            // Event listeners
+            nextBtn.addEventListener('click', () => {
+                nextSlide();
+            });
+            
+            prevBtn.addEventListener('click', () => {
+                prevSlide();
+            });
+            
+            dots.forEach(dot => {
+                dot.addEventListener('click', function() {
+                    const slideIndex = parseInt(this.getAttribute('data-slide'));
+                    goToSlide(slideIndex);
+                });
+            });
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') {
+                    nextSlide();
+                } else if (e.key === 'ArrowLeft') {
+                    prevSlide();
+                }
+            });
+            
+            // Pause on hover
+            const slider = document.querySelector('.slider');
+            slider.addEventListener('mouseenter', () => {
+                clearInterval(slideInterval);
+                // Pause progress bar animation
+                document.querySelector('.slide.active .progress-bar').style.animationPlayState = 'paused';
+            });
+            
+            slider.addEventListener('mouseleave', () => {
+                startSlideShow();
+                // Resume progress bar animation
+                document.querySelector('.slide.active .progress-bar').style.animationPlayState = 'running';
+            });
+            
+            // Initialize
+            initSlider();
+            
+            // Add parallax effect on mousemove
+            slider.addEventListener('mousemove', (e) => {
+                const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+                const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+                slider.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+            });
+            
+            // Reset position when mouse leaves
+            slider.addEventListener('mouseleave', () => {
+                slider.style.transform = 'rotateY(0deg) rotateX(0deg)';
+            });
+        });
+    </script>
+</body>
+</html>
